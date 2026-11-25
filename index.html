@@ -400,6 +400,19 @@ body:not([data-tab="inicio"]) .top .logo{display:none}
 .gate .gnote{font:400 13px/1.4 var(--font-body);color:var(--muted);margin:2px 0 0}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .gate{background:#2B2228}}
 :root[data-theme="dark"] .gate{background:#2B2228}
+#main>*{flex-shrink:0}
+.prior{flex-shrink:1!important}
+.fab.mic{right:calc(var(--gr) + 70px);bottom:calc(100% + 18px);width:50px;height:50px;border-radius:18px;background:var(--card);color:var(--btn);border:1px solid var(--line)}
+.fab.mic svg{width:23px;height:23px}
+.fab.mic.on{background:var(--btn);color:var(--on-btn)}
+#voice{position:fixed;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 160px);z-index:60;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:20px;padding:14px 16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#voice .vt{margin:0;flex:1 1 180px;font-size:15px;line-height:1.4}
+#voice .btn{padding:8px 14px;font-size:14px}
+
+.bkbar{flex:none;margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:10px 14px}
+.bkbar p{margin:0;flex:1 1 170px;font-size:13.5px;line-height:1.35;color:var(--ink)}
+.bkbtns{display:flex;gap:8px}
+.bkbar .btn{padding:8px 14px;font-size:14px}
 </style>
 </head>
 <body>
@@ -419,7 +432,9 @@ body:not([data-tab="inicio"]) .top .logo{display:none}
   <p class="tagline" id="tagline">Tudo começa com uma escolha.</p>
   <div id="chips" class="chips-row" role="group" aria-label="Filtrar por área" hidden></div>
   <main id="main"></main>
+  <div id="voice" hidden role="status" aria-live="polite"></div>
   <div class="dock">
+    <button class="fab mic" data-a="mic" aria-label="Criar tarefa falando" hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
     <button class="fab" data-a="fab" aria-label="Nova tarefa"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
     <nav class="tabs" aria-label="Seções" id="tabs"></nav>
   </div>
@@ -2143,7 +2158,7 @@ var TABS=[['inicio','Início',I.home],['kanban','Kanban',I.kanban],['calendario'
 /* ---------- estado ---------- */
 var PALS=[['pastel','Pastéis',['#FCEEF2','#E9F6EF','#E9F1FB'],'#6F5A72'],['ceu','Céu e areia',['#EAF3FA','#F6EFE3','#E3EFF7'],'#4F6D8A'],['jardim','Jardim',['#EEF6E8','#E4F2EA','#F3F6E2'],'#4F7A5E'],['sol','Pôr do sol',['#FDEBDD','#FBE3E3','#FFF1D9'],'#B5593F'],['lavanda','Lavanda',['#F1EAFA','#E8E9FA','#F5EAF6'],'#6B5A9B'],['cafe','Café com leite',['#F5EDE3','#EFE6DA','#F7F0E6'],'#7A5C48'],['natal','Natal',['#FBE9EA','#E6F2E8','#FFF4DA'],'#A32E3B'],['pascoa','Páscoa',['#FFF4D6','#E6F3E0','#F1E6F8'],'#7B5EA7']];
 var migrated=false;
-function defCfg(){return {pal:'pastel',weekStart:0,defArea:'profissional',defDate:'today',showMsg:true,calDone:true,colDone:true}}
+function defCfg(){return {pal:'pastel',weekStart:0,defArea:'profissional',defDate:'today',showMsg:true,calDone:true,colDone:true,bkAt:'',bkSnooze:''}}
 var DEFAULT_AREAS=[{id:'pessoal',name:'Pessoal',ci:1,fixed:true},{id:'profissional',name:'Profissional',ci:2,fixed:true}];
 var S={tasks:[],projects:[],areas:clone(DEFAULT_AREAS),updatedAt:0,seeded:[],name:'Mari',cfg:defCfg()};
 var nowD=new Date();
@@ -2160,7 +2175,7 @@ function normalize(d){
     name:(typeof d.name==='string'&&d.name.trim())?d.name.trim():'Mari'
   };
   var c=(d.cfg&&typeof d.cfg==='object')?d.cfg:{};
-  o.cfg={pal:PALS.some(function(p){return p[0]===c.pal})?c.pal:'pastel',weekStart:c.weekStart===1?1:0,defArea:typeof c.defArea==='string'?c.defArea:'profissional',defDate:c.defDate==='none'?'none':'today',showMsg:c.showMsg!==false,calDone:c.calDone!==false,colDone:c.colDone!==false};
+  o.cfg={pal:PALS.some(function(p){return p[0]===c.pal})?c.pal:'pastel',weekStart:c.weekStart===1?1:0,defArea:typeof c.defArea==='string'?c.defArea:'profissional',defDate:c.defDate==='none'?'none':'today',showMsg:c.showMsg!==false,calDone:c.calDone!==false,colDone:c.colDone!==false,bkAt:/^\d{4}-\d{2}-\d{2}$/.test(c.bkAt)?c.bkAt:'',bkSnooze:/^\d{4}-\d{2}-\d{2}$/.test(c.bkSnooze)?c.bkSnooze:''};
   DEFAULT_AREAS.slice().reverse().forEach(function(a){if(!o.areas.some(function(x){return x.id===a.id}))o.areas.unshift(clone(a))});
   o.tasks.forEach(function(t){if(!Array.isArray(t.adiamentos))t.adiamentos=[];t.prio=+t.prio||0;t.rec=t.rec||'';t.note=t.note||'';t.star=!!t.star;if(!Array.isArray(t.days))t.days=[];t.col=(t.col==='and'||t.col==='doing')?'doing':(t.col==='waiting'?'waiting':'');if(t.note){t.title=t.title+' - '+t.note;t.note='';migrated=true}});
   return o;
@@ -2394,6 +2409,19 @@ function chipsHTML(){
 }
 
 /* ---------- telas ---------- */
+function brDate(v){return v.split('-').reverse().join('/')}
+function bkRef(){
+  if(S.cfg.bkAt)return S.cfg.bkAt;
+  var ds=S.tasks.map(function(t){return String(t.createdAt||'').slice(0,10)}).filter(function(x){return /^\d{4}-\d{2}-\d{2}$/.test(x)}).sort();
+  return ds[0]||'';
+}
+function needBk(){
+  var t0=today(),ref=bkRef();
+  if(!ref)return false;
+  if(S.cfg.bkSnooze&&t0<S.cfg.bkSnooze)return false;
+  return Math.round((parse(t0)-parse(ref))/864e5)>=30;
+}
+function bkText(){return S.cfg.bkAt?'Último backup exportado em '+brDate(S.cfg.bkAt)+'.':'Você ainda não exportou nenhum backup.'}
 function viewHome(){
   var n=new Date(),h=n.getHours();
   var per=h<12?'manha':h<18?'tarde':'noite';
@@ -2413,6 +2441,7 @@ function viewHome(){
     '</section>'+
     '<div class="home-sec"><h2 class="sec">Seu dia</h2><p class="sub">'+esc(cap(n.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})))+'</p></div>'+
     tiles(stats(dayTasks()))+
+    (needBk()?'<section class="bkbar" aria-label="Lembrete de backup"><p><b>Hora de guardar um backup.</b> Exporte o arquivo e guarde no Google Drive.</p><div class="bkbtns"><button type="button" class="btn" data-a="export">Exportar</button><button type="button" class="btn soft" data-a="bk-later">Depois</button></div></section>':'')+
     '<section class="card prior"><h2>Prioridade do dia</h2><p class="sub">Tarefas com estrela que vencem hoje.</p><div class="list">'+list+'</div></section>';
 }
 
@@ -2569,6 +2598,106 @@ function toast(msg,undo){
 }
 
 /* ---------- folhas (sheets) ---------- */
+/* ---------- criar tarefa por voz ---------- */
+var SRC=window.SpeechRecognition||window.webkitSpeechRecognition,vrec=null;
+(function(){var b=document.querySelector('.fab.mic');if(b&&SRC)b.hidden=false})();
+function voiceShow(msg,listening){
+  var v=$('#voice');if(!v)return;
+  v.hidden=false;
+  v.innerHTML='<p class="vt">'+esc(msg)+'</p>'+(listening?'<button type="button" class="btn soft" data-a="mic-stop">Cancelar</button>':'');
+}
+function voiceHide(){
+  var v=$('#voice');if(v){v.hidden=true;v.innerHTML=''}
+  var b=document.querySelector('.fab.mic');if(b)b.classList.remove('on');
+}
+var VOICE_DOW=[['domingo',0],['segunda',1],['ter[çc]a',2],['quarta',3],['quinta',4],['sexta',5],['s[áa]bado',6]];
+function voiceDate(title){
+  var SEP='(^|[\\s,;.])',END='(?=$|[\\s,;.!?])',t0=today(),out=null,m,re;
+  re=new RegExp(SEP+'(?:at[ée]\\s+)?(depois\\s+de\\s+amanh[ãa])'+END,'i');
+  if(re.test(title)){title=title.replace(re,'$1');out=addDays(t0,2)}
+  else{
+    re=new RegExp(SEP+'(?:at[ée]\\s+|para\\s+|pra\\s+)?(amanh[ãa])'+END,'i');
+    if(re.test(title)){title=title.replace(re,'$1');out=addDays(t0,1)}
+    else{
+      re=new RegExp(SEP+'(?:at[ée]\\s+|para\\s+|pra\\s+)?(hoje)'+END,'i');
+      if(re.test(title)){title=title.replace(re,'$1');out=t0}
+      else{
+        for(var i=0;i<VOICE_DOW.length&&out===null;i++){
+          re=new RegExp(SEP+'(?:(?:at[ée]|para|pra|na|no|nesta|neste|nessa|nesse)\\s+)?(?:(?:a\\s+)?(?:pr[óo]xima|esta|essa)\\s+)?('+VOICE_DOW[i][0]+')(?:-feira)?'+END,'i');
+          if(re.test(title)){
+            title=title.replace(re,'$1');
+            var cur=parse(t0).getDay(),diff=(VOICE_DOW[i][1]-cur+7)%7;
+            out=addDays(t0,diff===0?7:diff);
+          }
+        }
+      }
+    }
+  }
+  return {title:title,date:out};
+}
+function parseVoice(raw){
+  var s=String(raw||'').replace(/\s+/g,' ').trim();
+  s=s.replace(/^(?:por favor[,\s]*)?(?:(?:crie|criar|cria|adicione|adicionar|adiciona|anote|anotar|anota|coloque|colocar|coloca)\s+)?(?:(?:uma|a)\s+)?(?:nova\s+)?(?:tarefa|lembrete)\s*(?:para|pra|de|:|-)?\s+/i,'');
+  s=s.replace(/^(?:me\s+)?lembrar?\s+(?:de\s+|que\s+)?/i,'');
+  var d=voiceDate(s);s=d.title;
+  s=s.replace(/\s+/g,' ').replace(/^[\s,;:.!?-]+/,'').replace(/[\s,;:.!?-]+$/,'');
+  s=s.replace(/\s+(?:para|pra|até|ate|no|na|de|em)$/i,'').trim();
+  if(!s)return null;
+  s=s.charAt(0).toUpperCase()+s.slice(1);
+  if(s.length>140)s=s.slice(0,140).trim();
+  return {title:s,date:d.date};
+}
+function voiceCreate(raw){
+  var p=parseVoice(raw);
+  if(!p){toast('Não entendi a tarefa. Tente de novo.');return}
+  var dt=p.date!==null?p.date:(S.cfg.defDate==='none'?'':today());
+  var area=S.areas.some(function(a){return a.id===S.cfg.defArea})?S.cfg.defArea:'profissional';
+  var task={id:uid('t'),title:p.title,area:area,project:null,date:dt||null,col:'',done:false,doneAt:null,createdAt:new Date().toISOString(),adiamentos:[],prio:0,rec:'',days:[],note:'',star:false};
+  S.tasks.push(task);commit();
+  toast('Tarefa criada: '+p.title+(dt?' ('+dateLabel(dt).toLowerCase()+')':' (sem data)'),function(){S.tasks=S.tasks.filter(function(x){return x.id!==task.id});commit()});
+}
+function stopVoice(cancel){
+  var r=vrec;if(!r)return;
+  if(cancel){vrec=null;try{r.abort()}catch(e){}voiceHide()}
+  else{try{r.stop()}catch(e){}}
+}
+function startVoice(){
+  if(!SRC){toast('Este navegador não reconhece voz.');return}
+  if(vrec){stopVoice(true);return}
+  var r=new SRC(),finalText='',failed=false;
+  r.lang='pt-BR';r.interimResults=true;r.continuous=false;r.maxAlternatives=1;
+  vrec=r;
+  var mb=document.querySelector('.fab.mic');if(mb)mb.classList.add('on');
+  voiceShow('Ouvindo… fale a tarefa.',true);
+  r.onresult=function(e){
+    if(vrec!==r)return;
+    var interim='';
+    for(var i=e.resultIndex;i<e.results.length;i++){
+      var tr=e.results[i][0].transcript;
+      if(e.results[i].isFinal)finalText+=tr+' ';else interim+=tr;
+    }
+    voiceShow('“'+(finalText+interim).trim()+'”',true);
+  };
+  r.onerror=function(e){
+    if(vrec!==r)return;
+    failed=true;vrec=null;voiceHide();
+    var c=(e&&e.error)||'';
+    toast(c==='not-allowed'||c==='service-not-allowed'?'O microfone está bloqueado. Libere o microfone para este site nas permissões do Chrome.':
+      c==='no-speech'?'Não ouvi nada. Toque no microfone e tente de novo.':
+      c==='network'?'Sem internet para reconhecer a voz agora.':
+      c==='audio-capture'?'Não encontrei um microfone neste aparelho.':
+      'Não consegui reconhecer a voz'+(c?' ('+c+')':'')+'.');
+  };
+  r.onend=function(){
+    if(vrec!==r)return;
+    vrec=null;voiceHide();
+    if(failed)return;
+    var tx=finalText.trim();
+    if(tx)voiceCreate(tx);else toast('Não ouvi nada. Toque no microfone e tente de novo.');
+  };
+  try{r.start()}catch(e){vrec=null;voiceHide();toast('Não consegui abrir o microfone.')}
+}
+
 function openSheet(html){
   opener=document.activeElement;
   $('#sheet-root').innerHTML='<div class="back" data-a="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-title"><div class="grab"></div>'+html+'</div>';
@@ -2763,7 +2892,7 @@ function viewSettings(){
     }).join('')+'</ul>'+
     '<form id="f-area" class="addrow" novalidate><label for="f-areaname" style="position:absolute;left:-9999px">Nova área</label><input id="f-areaname" class="inp" type="text" maxlength="24" autocomplete="off" placeholder="Nova área, ex.: Estudos"><button type="submit" class="btn">Adicionar</button></form>'+
     '<p class="err" id="f-err" hidden></p></section>'+
-    '<section class="card"><h2 class="ct">Seus dados</h2><p id="syncnote" class="note" style="margin-top:0">'+esc(syncText())+'</p>'+
+    '<section class="card"><h2 class="ct">Seus dados</h2><p id="syncnote" class="note" style="margin-top:0">'+esc(syncText())+'</p><p class="note" style="margin-top:6px">'+esc(bkText())+' O app avisa quando passar de 30 dias.</p>'+
       '<div class="opts" style="margin-top:12px"><button type="button" class="btn soft" data-a="export">Exportar backup</button><label class="btn soft" style="cursor:pointer">Importar backup<input id="f-import" type="file" accept=".json,application/json" hidden></label></div>'+imp+(window.FB&&UIUSER?'<div class="opts" style="margin-top:12px"><button type="button" class="btn soft" data-a="logout">Sair da conta</button></div>':'')+'</section>'+
   '</div>';
 }
@@ -2774,7 +2903,8 @@ function exportData(){
     a.href=url;a.download='constancia-backup-'+today()+'.json';
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(function(){URL.revokeObjectURL(url)},4000);
-    toast('Backup pronto. Procure o arquivo em Downloads.');
+    S.cfg.bkAt=today();S.cfg.bkSnooze='';commit();
+    toast('Backup pronto. Procure o arquivo em Downloads e guarde no Drive.');
   }catch(e){toast('Não foi possível exportar agora.')}
 }
 function readImport(file){
@@ -2867,6 +2997,9 @@ document.addEventListener('click',function(e){
     case 'area-filter':UI.area=el.dataset.v;render();break;
     case 'export':exportData();break;
     case 'logout':logout();break;
+    case 'mic':startVoice();break;
+    case 'mic-stop':stopVoice(true);break;
+    case 'bk-later':S.cfg.bkSnooze=addDays(today(),7);commit();toast('Combinado, aviso de novo em 7 dias');break;
     case 'imp-ok':if(UI.imp){S=UI.imp;UI.imp=null;commit();toast('Backup restaurado')}break;
     case 'imp-no':UI.imp=null;render();break;
     case 'newproject':openProject();break;
